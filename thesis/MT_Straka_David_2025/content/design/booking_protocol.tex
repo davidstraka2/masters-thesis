@@ -1,0 +1,57 @@
+The booking protocol shall build upon the HTTP protocol. Because the booking protocol shall handle transfers of lots of personal data, outside of localhost the secured HTTP variant HTTPS shall be used (which is also enforced by some web browsers). The booking protocol shall use JSON as the data format for all requests and responses. In the headers of every request and response, two header items shall be present: \texttt{Booking-address} and \texttt{Booking-Service-Info}.
+
+The \texttt{Booking-Address} header shall contain the booking address of the user who (or on whose behalf was) made the request. The receiving booking service shall then verify, that the request is coming from a server, whose IP address belongs to the domain of the booking address (if it uses a domain and not an IP address) according to public DNS records. This can be done using reverse DNS queries. If the booking service is unable to verify the booking address, it shall throw an HTTP 401 error with an informative message.
+
+The \texttt{Booking-Service-Info} header shall contain base64 encoded JSON string, which contains information about the booking service, namely its supported protocol version and protocol extensions (and their versions). The receiving booking service shall throw an HTTP 400 error with an informative message, if it is not compatible with the requesting booking service (or if the request is missing the header). The decoded and parsed object can be described by a TypeScript interface as shown in the listing~\ref{code:booking_protocol_service_info_interface}.
+
+\begin{listing}
+    \inputminted[breaklines]{typescript}{content/design/booking_protocol_service_info_interface.ts}
+    \caption{Definition of booking service info JSON using a TypeScript interface}
+    \label{code:booking_protocol_service_info_interface}
+\end{listing}
+
+Furthermore, each request (not response) shall contain the \texttt{Host} header, with the host of the target booking service, so that the booking service, which can be hosted on multiple domains under one IP address, can determine the target booking address.
+
+The booking protocol shall use the following two endpoints:
+\begin{itemize}
+    \item \texttt{GET /users/:username} -- Get a bookable user's inventory with items.
+    \begin{itemize}
+        \item The path parameter \texttt{:username} shall contain username part of the booking address of the user whose inventory is requested.
+        \item Respond with HTTP 200 and the \texttt{Inventory} resource with its items included and item occupancy (number of bookings of the item) calculated. The resource can be described by a TypeScript interface as shown in the listing~\ref{code:booking_protocol_inventory_interface}.
+        \item Respond with HTTP 404 if the booking address requested by the combination of the username from the path and host from the Host header does not exist.
+    \end{itemize}
+    \item \texttt{POST /users/:username/bookings} -- Create a booking for an item from a bookable user's inventory.
+    \begin{itemize}
+        \item The path parameter \texttt{:username} shall contain username part of the booking address of the user whose item is being booked.
+        \item The request body shall contain the \texttt{Booking} resource with the booked item's id. The resource can be described by a TypeScript interface as shown in the listing~\ref{code:booking_protocol_booking_interface}.
+        \item Respond with HTTP 201 and the \texttt{BookingWithItem} resource with its item included and item occupancy (number of bookings of the item) calculated. The resource can be described by a TypeScript interface as shown in the listing~\ref{code:booking_protocol_booking_with_item_interface}.
+        \item Respond with HTTP 400 if the booking is after book deadline, fully booked, or the given form data does not match the JSON schema in the item.
+        \item Respond with HTTP 404 if the booking address requested by the combination of the username from the path and host from the Host header does not exist, or if the item requested for booking does not exist.
+        \item Respond with HTTP 409 if the booking already exists.
+        \item Note that it is up to the requesting user's booking service to store the booking (and item or inventory) data if it wants to enable its users to view their bookings and items later.
+    \end{itemize}
+\end{itemize}
+
+\begin{listing}
+    \inputminted[breaklines]{typescript}{content/design/booking_protocol_inventory_interface.ts}
+    \caption{Definition of \texttt{Inventory} resource JSON using a TypeScript interface}
+    \label{code:booking_protocol_inventory_interface}
+\end{listing}
+
+\begin{listing}
+    \inputminted[breaklines]{typescript}{content/design/booking_protocol_booking_interface.ts}
+    \caption{Definition of \texttt{Booking} resource JSON using a TypeScript interface}
+    \label{code:booking_protocol_booking_interface}
+\end{listing}
+
+\begin{listing}
+    \inputminted[breaklines]{typescript}{content/design/booking_protocol_booking_with_item_interface.ts}
+    \caption{Definition of \texttt{BookingWithItem} resource JSON using a TypeScript interface}
+    \label{code:booking_protocol_booking_with_item_interface}
+\end{listing}
+
+\subsection{Use case}
+
+The booking protocol will be used for a simple use case of a business that occasionally holds one-time events and it wants to know names, emails, and optionally phones of the users who are interested in attending. The business will use the booking protocol to allow users to book a spot at the event. The business will have a booking service, which will be used by the users to book a spot at the event.
+
+The business also wants to let the users know its name, description, website, and contact information including email, phone, physical location, and opening hours. Each event (item of the inventory) will have a deadline for booking, a maximum number of bookings, duration, physical location, website, and a form schema, which the users must fill in when booking a spot at the event. The form schema will be a JSON schema, which will be used to validate the form data sent by the users when booking a spot at the event.

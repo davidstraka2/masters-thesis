@@ -1,0 +1,13 @@
+The non-functional requirements for the system are the following:
+\begin{enumerate}[label=\textbf{N\arabic*}, ref=\labelenumi]
+    \item \label{req:decentralized_architecture} \textbf{Decentralized architecture} --- Users of the system can book from users regardless of the exact server or client application they use. Users can also set up their own server and client application to use the system.
+    \item \label{req:cloud_native} \textbf{Cloud-native} --- The designed and implemented solution is containerized for easy deployment to a cloud platform and can be scaled well. The part of the solution that is responsible for the booking logic can be easily integrated into another solution.
+    \item \label{req:general_purpose} \textbf{General-purpose} --- The designed and implemented solution should try to be as general-purpose as possible, not rigidly built around a very specific use case.
+    \item \label{req:extensibility} \textbf{Extensibility} --- The designed and implemented solution can be extended both in terms of adding completely new functionality and extending existing functionality to better fit other use cases.
+    \item \label{req:backward_compatibility} \textbf{Backward compatibility} --- Users of the system can book from users using servers that implement older or newer designs of the system (with the functionality limited to what both parties support).
+    \item \label{req:fast_response_times} \textbf{Fast response times} --- As reservations in general can oftentimes be very time-sensitive, the system should be designed in such a way that does not introduce unnecessary delays to the booking process.
+    \item \label{req:platform_agnostic} \textbf{Platform-agnostic} --- While testing the designed and implemented solution on a single platform should be sufficient for the purposes of this thesis (especially considering it is supposed to be a prototype and not a production-ready product), the solution should not be limited by its design or implementation to certain processor architecture, operating system, or a web browser (within reason, taking into account the commonplace platforms). An exception can be made for new standardized web technologies that are not supported by all platforms yet, as long as those technologies only add additional features.
+    \item \label{req:open_source} \textbf{Open source} --- The designed and implemented solution is open-source, enabling anyone to freely use and repurpose it for their own needs.
+\end{enumerate}
+
+These requirements mostly originate from the assignment of this thesis, and in many cases present an improvement over existing reservation systems.

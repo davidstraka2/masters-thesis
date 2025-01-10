@@ -1,0 +1,13 @@
+Containerfile
+.env
+/public/sw.js*
+/public/workbox*.js*
+
+Dockerfile
+.dockerignore
+node_modules
+npm-debug.log
+README.md
+.next
+docker
+.git

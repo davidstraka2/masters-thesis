@@ -1,0 +1,138 @@
+% TODO reference requirements
+
+This section first describes the architecture of the entire decentralized booking system, then later defines the format of booking addresses and their URI scheme, and lastly it focuses more on the architecture of the solution that is implemented in this thesis.
+
+\subsection{System architecture}
+
+Like many other decentralized systems, such as email, the Fediverse or Bluesky, the decentralized booking system shall use a federated architecture, which comprises of a network of several booking services operated by different booking service providers. These booking services shall communicate with each other using a common booking protocol, and interface with the end users through booking client applications provided by the booking service provider operating the booking service. Within the system, end users shall be uniquely identified by a booking address provided by their booking service provider. An end user can not only be a human, but also a bot, used to perform for instance automatic bookings, though some booking service providers and their users may opt to take measures to prevent bot traffic.
+
+The common booking protocol shall be an application layer (as defined by~\cite{iso7498}) protocol built on top of the HTTP protocol (as per the thesis assignment). It shall be designed to be backwards-compatible, so that new features can be added without breaking compatibility with older versions of the protocol, and to be extensible, so that features useful to only some booking use cases can be added without affecting the rest of the protocol. The protocol's design is described in more detail in the section~\ref{part:booking_service}.
+
+While the main intention is to design a system that is as interoperable as possible, some booking service providers may choose to ban traffic from other booking service providers if they act in malicious ways, and bookable users may choose to ban (or only allow) certain users as well. Booking service providers may even choose to completely isolate themselves from the rest of the system on the internet, and instead provide booking services on a private network only (this may be desirable for instance in some corporate environments).
+
+A broad system network overview is shown in the figure~\ref{fig:system_network_diagram}. The figure~\ref{fig:system_conceptual_schema} then shows a detailed conceptual schema modelling the entities of the system and their relations.
+
+The conceptual schema contains the following entities:
+\begin{itemize}
+    \item \textit{\textbf{BookingProtocol}} --- This entity represents the booking protocol used for communication between booking services in the system. It has the attribute \textit{version}, which is used to version the protocol in accordance with the principles of semantic versioning, described by~\cite{semver}. Such version shall, as~\cite{semver} says, be in the format \mintinline{text}{MAJOR.MINOR.PATCH}, where a \textit{MAJOR} version shall be incremented \enquote{when you make incompatible API changes,} a \textit{MINOR} version shall be incremented \enquote{when you add functionality in a backward compatible manner,} and a \textit{PATCH} version shall be incremented \enquote{when you make backwards compatible bug fixes.}
+    \item \textit{\textbf{BookingProtocolExtension}} --- This entity represents any extension created for the booking protocol. It has the attributes \textit{id} and \textit{version}. The identifier \textit{id}, the entity's primary key, is used to uniquely identify the extension, and it shall be an Internationalized Resource Identifier (IRI), as defined by~\cite{rfc3987}. The \textit{version} is used to version the protocol extension, again in accordance with the principles of semantic versioning.
+    \item \textit{\textbf{BookingService}} --- This entity represents a booking service, that is a server used to facilitate booking activities with other booking services in the system, using the booking protocol.
+    \item \textit{\textbf{BookingServiceProvider}} --- This entity represents a provider of a booking service. Such provider is any individual or a company, that operates a booking service and issues booking addresses to its users.
+    \item \textit{\textbf{BookingClientApp}} --- This entity represents a booking client application, that the end users use to interact with the booking service. Such application can be for instance a web application, a mobile application, or a desktop application with a graphical user interface (GUI), or even just a simple command-line interface (CLI).
+    \item \textit{\textbf{User}} --- This entity represents an end user of the system. That can be both a human or a bot (or even a legal entity). One single person can also be represented as multiple users in the system, for instance if they use services of multiple booking service providers. This entity has the attribute \textit{bookingAddress} which is used to assign the user their system-wide unique booking address, and also serves as the entity's primary key. The format of the booking address is defined later on in this section.
+    \item \textit{\textbf{BookableUser}} --- This entity extends the \textit{User} entity and it represents a user who has an inventory of items, that other users of the system can book.
+    \item \textit{\textbf{Inventory}} --- This entity represents the inventory of a bookable user -- that is, again, a user who wants other users to be able to book items from them. The entity may have the attributes \textit{permissionMode}, \textit{metadata}, \textit{form}, \textit{itemType}, and \textit{itemMetadataSchema}.
+
+    The attribute \textit{permissionMode} is used when the inventory features either a list of banned users who may not book items of the inventory or a list of allowed users who are the only ones permitted to book the inventory's items (which one of these options is used is determined based on the value of the attribute).
+
+    The attribute \textit{metadata} is used to store arbitrary metadata about the inventory, such as contact information, opening hours, or announcements and notes for customers. To provide machine-readable semantic meaning to the metadata as well as the ability to link the data to other datasets, the JSON-LD format shall be used, as defined by~\cite{w3c_json_ld_1_0, w3c_json_ld_1_1}.
+
+    The attribute \textit{form} is used to store a JSON Schema (as specified by~\cite{json_schema_spec}) which defines the structure of the data that the bookable user wants users to fill out when booking an item from the inventory. According to~\cite{json_schema}, the defined JSON Schema can then be used to both validate the data that the user fills out and to generate UI of a form for the user to fill out. JSON Schema is used by many widespread production-ready systems and utilities, including for example OpenAPI (\cite{openapi} says that \enquote{OpenAPI 3.0 uses an extended subset of JSON Schema (\ldots{}) to describe the data formats}) and in turn also Kubernetes (which according to~\cite{kubernetes} for instance uses OpenAPI 3.0 to allow the definition of custom resources).
+
+    The attribute \textit{itemType} is used to define the type of the items in the inventory. This is done using an IRI, that will also be used as the \mintinline{text}{@type} directive for the JSON-LD metadata of the inventory items (thus reducing verbosity of the data). This information could then be also used by booking client applications to provide a better user experience, for instance by providing a more specific UI for booking items of a certain type.
+
+    Lastly, the attribute \textit{itemMetadataSchema} is used to store the JSON Schema of the metadata of the individual items in the inventory. Since this is defined on the inventory level, booking services and booking client applications can know which metadata to expect from all items even when using pagination for large collections of items.
+    \item \textit{\textbf{Item}} --- This entity represents an item in the inventory of a bookable user. Such item can for example be a one-time doctor appointment, a concert, a recurring language class, or even a physical item to be reserved in a store. The entity has the attributes \textit{uuid}, \textit{createdAt}, \textit{capacity}, \textit{bookDeadline}, and \textit{metadata}.
+    
+    The attribute \textit{uuid} is a random version 4 universally unique identifier (UUID) as defined by~\cite{rfc4122}. It is used to uniquely identify the item in the system, and it is also the entity's primary key.
+
+    The attribute \textit{createdAt} is a timestamp of the date and time when the item was created, including the time zone, in the standardized ISO 8601 format, as defined by~\cite{iso8601}.
+
+    The attribute \textit{capacity} is an integer optionally used to store the maximum number of bookings that can be made for the item. It is used to prevent overbooking. If the attribute is not set, the capacity is considered to be unlimited.
+
+    The attribute \textit{bookDeadline} is a timestamp of the date and time starting from when the item can no longer be booked, including the time zone, in the standardized ISO 8601 format. If the attribute is not set, the item can be booked indefinitely.
+
+    Lastly, the attribute \textit{metadata} is used to store arbitrary metadata about the item, such as a description, a price, a date and a time, or a location. To provide machine-readable semantic meaning to the metadata as well as the ability to link the data to other datasets, the JSON-LD format shall be used.
+
+    The item's metadata must adhere to the JSON Schema defined in the \textit{itemMetadataSchema} attribute of the item's inventory. The JSON-LD context of the item's metadata has \textbf{implicitly} included the \mintinline{text}{@vocab} directive included in the inventory's \textit{itemType}. Aside from the informational value of such item metadata for end users, it could also be used by booking client applications to filter and sort items.
+    \item \textit{\textbf{Booking}} --- This entity represents a successful booking of an item held by a user. It has the attributes \textit{uuid}, \textit{createdAt}, and \textit{formData}. The attribute \textit{uuid} is a random version 4 universally unique identifier (UUID), used to uniquely identify the booking in the system, and it is also the entity's primary key. The \textit{createdAt} is a timestamp of the date and time when the booking was created, including the time zone, in the standardized ISO 8601 format. The \textit{formData} is used to store the data that the user filled out when booking the item, and it must adhere to the JSON Schema in the inventory's \textit{form} attribute. If the attribute is not set, there was no form to fill out.
+\end{itemize}
+
+As for the relations between the entities, there are the following:
+\begin{itemize}
+    \item A \textit{BookingProtocol} entity can be implemented by any number of \textit{BookingService} entities and a \textit{BookingService} can implement one or more \textit{BookingProtocol} entities, due to the possibility of supporting multiple protocol versions at once.
+    \item A \textit{BookingProtocol} entity can be extended by any number of \textit{BookingProtocolExtension} entities and a \textit{BookingProtocolExtension} can extend one or more \textit{BookingProtocol} entities, again, due to possibly extending multiple protocol versions.
+    \item A \textit{BookingService} entity can support any number of \textit{BookingProtocolExtension} entities and a \textit{BookingProtocolExtension} can also be supported by any number of \textit{BookingService} entities.
+    \item A \textit{BookingServiceProvider} entity provides one or more \textit{BookingService} entities for their users and a \textit{BookingService} is provided by one \textit{BookingServiceProvider}.
+    \item The relation between the \textit{BookingServiceProvider} and \textit{BookingClientApp} is analogous to the one before.
+    \item A \textit{BookingClientApp} serves as a UI to one \textit{BookingService} and one \textit{BookingService} can be served by any number of \textit{BookingClientApp} entities. A typical example of a situation with multiple booking client applications per booking service is when a booking service provider provides, for instance, both a web application and native mobile applications for different platforms.
+    \item Similarly, a \textit{User} entity can use one or more \textit{BookingClientApp} entities and a \textit{BookingClientApp} can be used by any number of \textit{User} entities.
+    \item A \textit{User} entity is registered with one \textit{BookingServiceProvider} who gives them their booking address and one \textit{BookingServiceProvider} can have any number of \textit{User} entities registered with them. This includes such cases like a new provider who may not have any users yet, and a user with their own deployed booking infrastructure and a domain name being their own provider without providing services to anyone else. Note again that a \textit{User} entity only represents a person, a bot, a legal entity, or a group under one account, so this does not mean that a person cannot have accounts with multiple providers.
+    \item A \textit{BookableUser} entity creates one \textit{Inventory} entity and the \textit{Inventory} is only created by that one \textit{BookableUser}.
+    \item An \textit{Inventory} entity can ban/allow any number of \textit{User} entities from/for booking its items and a \textit{User} entity can be allowed or banned by any number of \textit{Inventory} entities.
+    \item An \textit{Inventory} entity can contain any number of \textit{Item} entities and an \textit{Item} entity is contained only by that inventory.
+    \item An \textit{Item} can be in an exclusive (XOR) relation with any number of other \textit{Item} entities and vice-versa. When two \textit{Item} entities have the XOR relation between them, it means that booking one of the items also counts towards the capacity of the other item. This can be useful, for instance, when a business is offering multiple different services at a time and has only one staff member carry out the services.
+    \item An \textit{Item} entity can be booked by any number of \textit{Booking} entities (up to its capacity) and a \textit{Booking} entity books one \textit{Item} entity.
+    \item Lastly, a \textit{User} can hold any number of \textit{Booking} entities and a \textit{Booking} entity is held by a single \textit{User} entity.
+\end{itemize}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1.0\textwidth]{content/design/system_network_diagram.drawio.pdf}
+    \caption[System network diagram]{System network diagram}
+    \label{fig:system_network_diagram}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1.0\textwidth]{content/design/system_conceptual_schema.uxf.svg.pdf}
+    \caption[System conceptual schema]{System conceptual schema}
+    \label{fig:system_conceptual_schema}
+\end{figure}
+
+\subsection{Booking address format}
+
+To uniquely identify users in the system, a booking address shall be used. The booking address is a string that is unique within the system, and it is registered with the user's booking service provider (that being anyone who is an owner of a domain name and runs infrastructure implementing the booking protocol). This is a very familiar idea to that of email addresses and the format will look very similar.
+
+The booking address shall comprise of a username and either a domain name or an Internet Protocol (IP) address, separated by the \textit{at} (\mintinline{text}{@}) sign. At the end of the string, a port may also be specified, separated by a colon. The default port for the booking protocol shall be \mintinline{text}{3080}, and it is not necessary to specify it in the booking address if it is the default.
+
+The port \mintinline{text}{3080} is, according to~\cite{neo4j_ports}, not restricted in browsers and, according to~\cite{rfc6335} is in the range of \enquote{User Ports} which range from \mintinline{text}{1024} to \mintinline{text}{49151}, as opposed to \enquote{System Ports} which are below this range, and \enquote{Dynamic Ports} which are above the range and are never assigned by the Internet Assigned Numbers Authority (IANA). Searching for the port usage using search engines and using IANA's Service Name and Transport Protocol Port Number Registry~\cite{iana_ports} has not shown too widespread use of the port number.
+
+\begin{sloppypar}
+The booking address shall be case-insensitive, to prevent user errors. The username part may contain the 26 (case-insensitive) Latin letters, Arabic numerals, and the following special characters: the period (\mintinline{text}{.}), the hyphen/minus character (\mintinline{text}{-}), and an underscore (\mintinline{text}{_}). The username can be expressed by the regular expression \mintinline{text}{[0-9A-Za-z._-]+}. The entire booking address can then be expressed as \mintinline{text}{<username>@<ip_address>[:port]} and \mintinline{text}{<username>@<domain_name>[:port]}. Example valid booking addresses include \mintinline{text}{alice@127.0.0.1}, \mintinline{text}{bob@localhost:3080}, and \mintinline{text}{john.doe98@example.com}. Example booking addresses that are considered equivalent are \mintinline{text}{john.doe98@example.com}, \mintinline{text}{john.doe98@example.com:3080}, and \mintinline{text}{John.Doe98@example.com}. The maximum length of the username part shall be 64 characters (similarly to the limit of the local part of an email address, as defined by~\cite{rfc5321}).
+\end{sloppypar}
+
+\subsection{Custom URL scheme}
+
+According to~\cite{google_pwa_uri}: \enquote{A Uniform Resource Identifier (URI) is a compact sequence of characters that identifies an abstract or physical resource. Each URI begins with a scheme name that refers to a specification for assigning identifiers within that scheme. As such, the URI syntax is a federated and extensible naming system wherein each scheme's specification may further restrict the syntax and semantics of identifiers using that scheme. Schemes are also known as protocols.} Not to be confused with the actual communication protocol. URLs are a subset of URIs that specifies the location of a resource on the internet.
+
+In order to differentiate booking addresses from other identifiers when shared around the Web and enable users to assign their booking client application of choice to handle activated booking address hyperlinks, a custom URL scheme is also designed. \cite{google_pwa_uri}~states that in order for a progressive web application (PWA) to register their ability to open or handle particular URL schemes, the scheme must either be one of a few safelisted schemes or be prefixed with \mintinline{text}{web+}. Of course, this does not restrict non-PWA applications from handling the scheme.
+
+\begin{sloppypar}
+In order to future-proof the system and alow the increasingly popular PWAs to handle the scheme, the booking system shall use the scheme \mintinline{text}{web+booking}. Searches made using search engines for the exact phrase have not revealed any existing use of the scheme. The scheme shall be followed by a booking address and, optionally, any of the following (in the order listed):~a path separated from the booking address by a forward slash (\mintinline{text}{/}), query parameters separated from prior URI segments by a question mark (\mintinline{text}{?}), separated from each other by an ampersand (\mintinline{text}{&}) and separated from their own values by an equals sign (\mintinline{text}{=}), and lastly a fragment separated from prior URI segments by a number sign (\mintinline{text}{#}), much like in the case of URLs.
+\end{sloppypar}
+
+The path, query, and fragment segments will not be utilized in the initial version of the booking protocol, but extensions of the protocol as well as newer protocol versions may utilize them in the future. As an example of possible future utilization of these segments, path and fragment could be used to direct the client application to a certain section and the parameters could be used to provide additional functionality, such as form filling with predefined values or item filtering and sorting.
+
+Because of limitations of URL format, unlike in URIs, the \textit{at} (\mintinline{text}{@}) sign in cannot be used in the booking booking address in the URL, and using a percent encoding would mean double encoding. Therefore, specifically in booking schema URLs, it shall be replaced with the \textit{tilde} (\mintinline{text}{~}) character, which can be used and easily separated from the rest of the URL.
+
+\begin{sloppypar}
+The URL scheme can then be expressed as \mintinline{text}{web+booking://<booking_address>[/path][?query][#fragment]}. Example URIs include the following:
+\begin{itemize}
+    \item \mintinline{text}{web+booking://alice~127.0.0.1},
+    \item \mintinline{text}{web+booking://bob~localhost/a},
+    \item \mintinline{text}{web+booking://charlie~localhost:3080?q=val},
+    \item \mintinline{text}{web+booking://dan~localhost:8000#section},
+    \item and \mintinline{text}{web+booking://john.doe98~example.com/a?b=1&c=2&d=3#e}.
+\end{itemize}
+\end{sloppypar}
+
+\subsection{Implementation architecture}
+
+The implementation will use the microservice architecture API gateway pattern, with each service being containerized. A diagram illustrating the architecture is shown in the figure~\ref{fig:architecture_diagram}. The figure~\ref{fig:architecture_diagram_detailed} then shows a more detailed diagram of the architecture featuring the technologies chosen for each service (which are later described in the section~\ref{part:implementation}).
+
+This will enable more efficient scaling of the individual services, as well as easier replacement of one individual service, if for instance a booking service provider decides to use their own implementation of only one of the services. It is also in accordance with the non-functional requirement~\ref{req:cloud_native}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1.0\textwidth]{content/design/architecture_diagram.pdf}
+    \caption[Architecture diagram]{Architecture diagram}
+    \label{fig:architecture_diagram}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1.0\textwidth]{content/design/architecture_diagram_detailed.pdf}
+    \caption[Detailed architecture diagram]{Detailed architecture diagram}
+    \label{fig:architecture_diagram_detailed}
+\end{figure}

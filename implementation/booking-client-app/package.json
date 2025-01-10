@@ -1,0 +1,61 @@
+{
+  "name": "booking-client-app",
+  "version": "0.1.0",
+  "private": true,
+  "author": {
+    "name": "David Straka",
+    "email": "mail@davidstraka.dev",
+    "url": "https://davidstraka.dev"
+  },
+  "license": "MIT",
+  "homepage": "https://davidstraka.dev/masters-thesis",
+  "description": "A prototype booking client application",
+  "keywords": [
+    "Booking Client App",
+    "booking client",
+    "decentralized reservation system",
+    "booking",
+    "reservation",
+    "appointment",
+    "scheduling"
+  ],
+  "engines": {
+    "node": ">=22.11.0",
+    "npm": ">=10.9.0"
+  },
+  "scripts": {
+    "start:dev": "dotenv -c -- next dev",
+    "build": "next build",
+    "start": "dotenv -c -- next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@emotion/react": "11.14.0",
+    "@emotion/styled": "11.14.0",
+    "@fontsource/roboto": "5.1.0",
+    "@jsonforms/core": "3.5.0-beta.2",
+    "@jsonforms/material-renderers": "3.5.0-beta.2",
+    "@jsonforms/react": "3.5.0-beta.2",
+    "@mui/icons-material": "6.3.0",
+    "@mui/material": "6.3.0",
+    "@mui/x-date-pickers": "7.23.3",
+    "ajv": "8.6.1",
+    "ajv-formats": "2.1.0",
+    "dotenv-cli": "7.4.4",
+    "next": "15.1.2",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "supertokens-auth-react": "0.48.0",
+    "supertokens-web-js": "0.14.0",
+    "zustand": "5.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "22.10.2",
+    "@types/react": "19.0.1",
+    "@types/react-dom": "19.0.1",
+    "eslint": "9.17.0",
+    "eslint-config-next": "15.1.2",
+    "sass": "1.83.0",
+    "typescript": "5.7.2"
+  }
+}

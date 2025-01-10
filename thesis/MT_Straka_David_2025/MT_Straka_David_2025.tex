@@ -1,0 +1,153 @@
+% -------------------------------------- Directives for arara --------------------------------------
+
+% arara: lualatex: { shell : yes }
+% arara: biber
+% arara: lualatex: { shell : yes }
+% arara: lualatex: { shell : yes }
+
+% ----------------------------------------- Document class -----------------------------------------
+
+% Options:
+% - `thesis=B` - bachelor's thesis
+% - `thesis=M` - master's thesis
+% - `czech` - thesis in Czech language
+% - `english` - thesis in English language
+% - `hidelinks` - remove colour boxes around hyperlinks
+\documentclass[thesis=M,english]{template/FITthesis}[2019/12/23]
+
+% ------------------------------------------- Typography -------------------------------------------
+
+\usepackage{luavlna}
+\usepackage[all]{nowidow}
+\usepackage{csquotes}
+
+% ------------------------------------- Bibliography settings --------------------------------------
+
+\usepackage[style=iso-numeric]{biblatex}
+\addbibresource{bibliography.bib}
+
+% --------------------------------------------- Lists ----------------------------------------------
+
+\usepackage{enumitem} % Enables e.g. `\begin{enumerate}[label=\textbf{F\arabic*}, ref=\labelenumi]`
+
+% --------------------------------------------- Links ----------------------------------------------
+
+\usepackage{xurl}
+
+% ------------------------------------------- Footnotes --------------------------------------------
+
+% https://tex.stackexchange.com/questions/28465/multiple-footnotes-at-one-point#comment288652_28467
+\let\oldFootnote\footnote
+\newcommand\nextToken\relax
+\renewcommand\footnote[1]{%
+    \oldFootnote{#1}\futurelet\nextToken\isFootnote}
+\newcommand\isFootnote{%
+    \ifx\footnote\nextToken\textsuperscript{,}\fi}
+
+% ----------------------------------------- Code listings ------------------------------------------
+
+\usepackage{minted}
+\counterwithin{listing}{chapter}
+
+% ----------------------------------------- Directory tree -----------------------------------------
+
+\usepackage{dirtree}
+
+% -------------------------------------------- Metadata --------------------------------------------
+
+\assignment{assignment}
+\department{Department of Software Engineering}
+\title{Decentralized and Open Architecture of a Reservation System}
+\authorGN{David} % Author's given name/names
+\authorFN{Straka} % Author's surname
+\authorWithDegrees{Bc. David Straka} % Author's name with academic degrees
+\author{David Straka} % Author's name without academic degrees
+\supervisor{doc. Ing. Tomáš Vitvar, Ph.D.}
+\acknowledgements{\input{content/acknowledgements}}
+\abstractCS{\input{content/abstract_cs}}
+\abstractEN{\input{content/abstract_en}}
+\placeForDeclarationOfAuthenticity{Prague} % Where you have signed the declaration
+\keywordsCS{decentralizovaná architektura, rezervační systém, decentralizace, rezervace, schůzky, Web}
+\keywordsEN{decentralized architecture, reservation system, decentralization, reservations, bookings, appointments, Web}
+\declarationOfAuthenticityOption{5} % Select as appropriate, according to the desired license
+\website{https://davidstraka.dev/masters-thesis} % Optional URL (remove entirely if you have no URL for this thesis)
+
+% -------------------------------------- End of the preamble ---------------------------------------
+
+\begin{document}
+
+% ----------------------------------------- Vlna settings ------------------------------------------
+
+\singlechars{czech}{AaIiVvOoUuSsZzKk} % Add non-breaking space after "a" (https://github.com/michal-h21/luavlna/issues/10)
+\singlechars{english}{AaIiVvOoUuSsZzKk} % Add non-breaking space after "a" (https://github.com/michal-h21/luavlna/issues/10)
+\enablesplithyphens{english}
+
+% ------------------------------------------ Introduction ------------------------------------------
+
+\begin{introduction}
+	\label{part:introduction}
+	\input{content/introduction}
+\end{introduction}
+
+% ---------------------------------- Existing Reservation Systems ----------------------------------
+
+\chapter{Existing Reservation Systems}
+\label{part:existing_reservation_systems}
+
+\input{content/existing_reservation_systems}
+
+% -------------------------------------------- Analysis --------------------------------------------
+
+\chapter{Analysis}
+\label{part:analysis}
+
+\input{content/analysis}
+
+% --------------------------------------------- Design ---------------------------------------------
+
+\chapter{Design}
+\label{part:design}
+
+\input{content/design}
+
+% ----------------------------------------- Implementation -----------------------------------------
+
+\chapter{Implementation}
+\label{part:implementation}
+
+\input{content/implementation}
+
+% ------------------------------------------- Conclusion -------------------------------------------
+
+\begin{conclusion}
+	\label{part:conclusion}
+	\input{content/conclusion}
+\end{conclusion}
+
+% ------------------------------------------ Bibliography ------------------------------------------
+
+\begin{sloppypar}
+	\printbibliography
+\end{sloppypar}
+
+% --------------------------------------- Appendix chapters ----------------------------------------
+
+\appendix
+
+% ---------------------------------------- List of Acronyms ----------------------------------------
+
+\chapter{List of Acronyms}
+\label{part:list_of_acronyms}
+
+\input{content/list_of_acronyms}
+
+% ------------------------------- Contents of the Digital Attachment -------------------------------
+
+\chapter{Contents of the Digital Attachment}
+\label{part:contents_of_the_digital_attachment}
+
+\input{content/contents_of_the_digital_attachment}
+
+% -------------------------------------- End of the document ---------------------------------------
+
+\end{document}

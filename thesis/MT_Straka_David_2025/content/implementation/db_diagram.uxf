@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.0.0">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>290</x>
+      <y>430</y>
+      <w>310</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>item
+--
+PK id: UUID
+--
+      created_at: TIMESTAMPTZ
+      capacity: INT4 [0..1]
+      book_deadline: TIMESTAMPTZ [0..1]
+      metadata: JSONB [0..1]
+--
+FK inventory_id: UUID</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>720</x>
+      <y>430</y>
+      <w>280</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>booking
+--
+PK id: UUID
+--
+      created_at: TIMESTAMPTZ
+      form_data: JSONB [0..1]
+--
+FK booking_address_address: CITEXT
+FK item_id: UUID</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>770</x>
+      <y>140</y>
+      <w>230</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>booking_address
+--
+PK address: CITEXT
+--
+FK user_id: UUID [0..1]
+FK inventory_id: UUID [0..1]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>590</x>
+      <y>480</y>
+      <w>150</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>lt=-
+m1=1
+m2=0..n
+&lt; books</panel_attributes>
+    <additional_attributes>10.0;20.0;130.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>910</x>
+      <y>220</y>
+      <w>110</w>
+      <h>230</h>
+    </coordinates>
+    <panel_attributes>lt=-
+m1=0..n
+m2=1
+ is held by ^</panel_attributes>
+    <additional_attributes>10.0;210.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>290</x>
+      <y>100</y>
+      <w>310</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>inventory
+--
+PK id: UUID
+--
+      metadata: JSONB [0..1]
+      form: JSONB [0..1]
+      item_type: TEXT [0..1]
+      item_metadata_schema: JSONB [0..1]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>420</x>
+      <y>230</y>
+      <w>100</w>
+      <h>220</h>
+    </coordinates>
+    <panel_attributes>lt=-
+m1=1
+m2=0..n
+ contains v</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;200.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>590</x>
+      <y>160</y>
+      <w>200</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>lt=-
+m1=1
+m2=0..1
+&lt; creates</panel_attributes>
+    <additional_attributes>180.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+</diagram>

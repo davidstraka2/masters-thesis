@@ -1,0 +1,30 @@
+The booking service shall implement the booking protocol designed in \ref{part:booking_protocol}. Furthermore, it shall offer internal APIs for use by the booking client application.
+
+\subsection{Database}
+\label{part:booking_service_database}
+
+This section describes the design decisions behind the structure of the database and the choice of the database engine.
+
+\subsubsection{Conceptual Schema}
+\label{part:conceptual_schema}
+
+The data that will need to be stored in the database can be described by the conceptual schema in figure~\ref{fig:db_conceptual_schema}. The database will need to store information about users, inventories, items, bookings, and the relationships between them. Most of the data is highly relational, with some properties being JSON documents. Either one database with support for both relational and document data types, or two separate databases, one for relational data and one for document data, could be used.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1.0\textwidth]{content/design/db_conceptual_schema.uxf.svg.pdf}
+    \caption[Conceptual schema of the booking service database]{Conceptual schema of the booking service database}
+    \label{fig:db_conceptual_schema}
+\end{figure}
+
+\subsubsection{OLAP vs. OLTP}
+\label{part:olap_vs_oltp}
+
+When determining which database engine to use and how to structure the database, one aspect to examine is whether the system will be used for online analytical processing (OLAP) or online transaction processing (OLTP). This system is a prime example of OLAP
+
+\subsubsection{ACID vs. BASE}
+\label{part:acid_vs_base}
+
+According to~\cite{brewer_cap, ibm_cap}, consistency, availability, and partition tolerance are the three properties that are impossible to achieve simultaneously in a distributed system. This is known as the CAP theorem. In the context of databases, the CAP theorem is often discussed in terms of ACID (Atomicity, Consistency, Isolation, Durability) and BASE (Basically Available, Soft state, Eventually consistent) properties.
+
+In the domain of booking, strong consistency and availability is absolutely essential. For example, an item available for booking must never be booked by more users than its capacity. Bookings are can also be very time sensitive. For those reasons, the system must be designed with ACID properties in mind.

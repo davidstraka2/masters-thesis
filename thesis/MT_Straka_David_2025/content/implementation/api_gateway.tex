@@ -1,0 +1,7 @@
+The API gateway behaves to the outside worlds as a booking service. It lets anybody access the booking protocol APIs of the booking service, but only authenticated users to use to internal APIs meant for the booking client app.
+
+Much like the booking service, the API gateway was built around the framework NestJS (Nest), with Express enabled.
+
+For user authentication, the library SuperTokens was used. For proxying requests to booking service, the library http-proxy-middleware was used.
+
+The API gateway also provides on internal endpoint \texttt{POST /forward-booking-request} for use by the booking service only, which is used to forward booking requests from the booking service to remote booking services.

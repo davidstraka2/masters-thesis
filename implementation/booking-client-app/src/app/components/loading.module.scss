@@ -1,0 +1,26 @@
+.loading {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    justify-content: center;
+
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    padding: 20px;
+
+    text-align: center;
+
+    > div {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+
+        > *:not(:last-child) {
+            margin-right: 10px;
+        }
+    }
+}

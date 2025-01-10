@@ -1,0 +1,60 @@
+First, every part of the implementation was tested manually by the author of this thesis. For the client application, this meant clicking through every page and state, testing edge-case inputs (invalid usernames, booking addresses, form data) and even setting up booking service failure scenarios by temporarily modifying the booking service to respond with invalid data. For the API gateway and the booking service, the command line utility cURL was used to send both valid and invalid requests, including different HTTP header combinations.
+
+Afterwards, when the implementation appeared stable, user usability testing was performed. 
+
+\subsection{Usability testing}
+
+Usability testing was performed with three subjects. \textbf{Subject A} is a 26 year old male software engineer with a university degree, who lives in the suburbs of Prague. \textbf{Subject B} is a 31 year old male army soldier, who lives in Prague. \textbf{Subject C} is a 52 year old female business manager, who lives in the suburbs of Prague and is not too technologically savvy.
+
+The following scenario was chosen based on the designed use case and given to testing subjects: \enquote{You are a manager at a mid-sized business (a couple hundred employees). Your company wants to organize a conference and needs to keep track of how many and who can partake. You know that you yourself will be at the conference.}
+
+Then, the following tasks were given to each subject:
+\begin{enumerate}
+    \item \enquote{Create a new account and booking address.}
+    \item \enquote{Create a new inventory with basic information about yourself as a manager.}
+    \item \enquote{Create a new inventory item for the conference.}
+    \item \enquote{Make a new booking of the conference item, since you know that you will be participating.}
+    \item \enquote{Check if you can find your booking in the inventory.}
+\end{enumerate}
+
+The testing was done in person, on a Windows 11 laptop that was brought to the testing setting, with all the required services set up and the booking client application open in the latest Google Chrome browser.
+
+The testing subjects performed the tasks as follows:
+\begin{enumerate}
+    \item Account and address creation:
+    \begin{itemize}
+        \item \textbf{Subject A} signed in using their GitHub account, input a valid username and the first try and created their booking address.
+        \item \textbf{Subject B} took a moment to find out how to switch the sign-in component to the sign up state, then created an account with email and password. They input a username and created their booking address, though at first try they put in an invalid character for the username, which was quickly corrected thanks to the instant UI feedback.
+        \item \textbf{Subject C} tried to fill in the email and password for their new account into the sign in form. When that attempt was unsuccessful, they realized the presence of the button to switch the component to the sign up state and created their new account successfully. Then they put in a simple username and created a booking address without an issue.
+    \end{itemize}
+    \item Inventory creation:
+    \begin{itemize}
+        \item \textbf{Subject A} immediately spotted the burger icon button that opens the drawer with a link to the business section, where they transitioned, filled out the new inventory form and created their inventory.
+        \item \textbf{Subject B} first opened the profile dialog, but their second choice was the burger icon button. The subject created their inventory without issue.
+        \item \textbf{Subject C} took a little while to look around the page, but their first choice was the burger icon button. The rest of the process was flawless.
+    \end{itemize}
+    \item Item creation:
+    \begin{itemize}
+        \item \textbf{Subject A} navigated to the add item page and filled out the form. They were experimenting with the duration field, which they said has a too exotic format, though it was not needed for this task. Then they proceeded to create the item.
+        \item \textbf{Subject B} navigated to the add item page, filled out the form and added the item to the inventory.
+        \item \textbf{Subject C} also navigated to the add item page, filled out the form and added the item to the inventory without anything to mention.
+    \end{itemize}
+    \item Item booking:
+    \begin{itemize}
+        \item \textbf{Subject A} first clicked the newly created item, then realized that they need to navigate back to the home page and then to the new booking page. They at first did not realize, that they need to input the whole booking address, but thanks to the instant feedback of the UI, they managed to get to the items for booking page and complete the booking.
+        \item \textbf{Subject B} experienced the same issues as \textbf{Subject A}, but managed to complete the booking.
+        \item \textbf{Subject C} also struggled to get to the correct page and then to find out what to input as the booking address. Once they got over this step, the process was straightforward.
+    \end{itemize}
+    \item Booking overview:
+    \begin{itemize}
+        \item \textbf{Subject A} finished the task successfully without anything to mention.
+        \item \textbf{Subject B} accessed the booking through their home page and thought that they completed the task. They had to be told, that this is not the correct place, otherwise they would not complete the task successfully.
+        \item \textbf{Subject C} first opened the booking through their home page, then re-read the instructions and went correctly to their inventory to access the booking.
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Evaluation}
+
+Through the conducted usability testing, some UI/UX blind spots were found. The issues some users faced with the sign in form could be attributed to the fact, that the form was in English and neither were native English speakers, so the two similar terms \enquote{sign in} and \enquote{sign up} can be confusing. Improvements in the client application could be made to better parse user values of certain metadata (enabling for example more human readable duration or opening hours format). Some sections of the client app are very similar, which can be also confusing. Likely the biggest hurdle is the exotic nature of booking addresses. This issue could be improved by displaying the users' booking addresses more prominently in the application.
+
+These issues, however, are relatively minor and the implementation is fully functional and fulfills the designed use case.

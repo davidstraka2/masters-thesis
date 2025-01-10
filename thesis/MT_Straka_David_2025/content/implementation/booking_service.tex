@@ -1,0 +1,14 @@
+The booking service was built around the framework NestJS (Nest). Nest~\cite{nestjs} \enquote{is built with and fully supports TypeScript} and is used \enquote{for building (...) Node.js server-side applications.} \enquote{Under the hood, Nest makes use of robust HTTP server frameworks like Express (the default) and optionally can be configured to use Fastify as well.} As Express is the default and (judging by download numbers from npm) the much more popular choice, and the Nest documentation~\cite{nestjs} occasionally mentions unsupported functionality when using Fastify, Nest was configured to use Express than the alternative. Nest \enquote{provides an out-of-the-box application architecture which allows developers and teams to create highly testable, scalable, loosely coupled, and easily maintainable applications.}
+
+The framework makes frequent use of the dependency injection pattern. This pattern is used to inject services into controllers, which are used to handle incoming requests. The controllers are responsible for handling incoming requests and returning responses. The services are responsible for handling the business logic of the application. The services are also responsible for handling the communication with the database.
+
+For Object Relational Management (ORM), MikroORM was used. For the database, PostgreSQL was used, which is an ACID compliant relational database management server, with support for JSON data types. The diagram of the PostgreSQL database can be seen in the figure~\ref{fig:db_diagram}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1.0\textwidth]{content/implementation/db_diagram.uxf.svg.pdf}
+    \caption[Diagram of the booking service database]{Diagram of the booking service database}
+    \label{fig:db_diagram}
+\end{figure}
+
+The booking service implements the booking protocol described in~\ref{part:booking_protocol}. Furthermore it offers internal APIs for use by the client.

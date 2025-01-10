@@ -1,0 +1,123 @@
+services:
+
+  booking-service-pg:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: booking_service
+      POSTGRES_PASSWORD: booking_service_password
+      POSTGRES_DB: booking_service_db
+      POSTGRES_PORT: 5432
+    ports:
+      - "5432:5432"
+    volumes:
+      - booking-service-pg-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'booking_service', '-d', 'booking_service_db']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  booking-service:
+    build:
+      context: booking-service
+      dockerfile: Containerfile
+    depends_on:
+      booking-service-pg:
+        condition: service_healthy
+    environment:
+      API_GATEWAY_HOSTNAME: localhost
+      API_GATEWAY_PORT: 3080
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: booking_service
+      POSTGRES_PASSWORD: booking_service_password
+      POSTGRES_DB: booking_service_db
+    network_mode: host
+    restart: unless-stopped
+
+  supertokens-pg:
+    image: 'postgres:17'
+    environment:
+      POSTGRES_USER: supertokens_user
+      POSTGRES_PASSWORD: supertokens_password
+      POSTGRES_DB: supertokens_db
+      POSTGRES_PORT: 5433
+    ports:
+      - "5433:5432"
+    volumes:
+      - supertokens-pg-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'supertokens_user', '-d', 'supertokens_db']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  supertokens:
+    image: registry.supertokens.io/supertokens/supertokens-postgresql:9.3.0
+    depends_on:
+      supertokens-pg:
+        condition: service_healthy
+    ports:
+      - "3567:3567"
+    environment:
+      POSTGRESQL_CONNECTION_URI: "postgresql://supertokens_user:supertokens_password@supertokens-pg:5432/supertokens_db"
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: >
+        bash -c 'exec 3<>/dev/tcp/127.0.0.1/3567 && echo -e "GET /hello HTTP/1.1\r\nhost: 127.0.0.1:3567\r\nConnection: close\r\n\r\n" >&3 && cat <&3 | grep "Hello"'
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  booking-api-gateway:
+    build:
+      context: booking-api-gateway
+      dockerfile: Containerfile
+    depends_on:
+      - booking-service
+      - supertokens
+    environment:
+      APP_NAME: "Booking Client App"
+      API_DOMAIN: http://localhost:3080
+      BOOKING_SERVICE_IP: "127.0.0.1"
+      BOOKING_SERVICE_URL: http://localhost:3000
+      CORS_ORIGIN: http://localhost:8080
+      WEBSITE_DOMAIN: http://localhost:8080
+      SUPERTOKENS_CONNECTION_URI: http://localhost:3567
+      # The default values are provided by SuperTokens for development & testing purposes only
+      # IMPORTANT: Replace these values with your own GitHub OAuth keys for production use
+      GITHUB_CLIENT_ID: "467101b197249757c71f"
+      GITHUB_CLIENT_SECRET: "e97051221f4b6426e8fe8d51486396703012f5bd"
+    network_mode: host
+    restart: unless-stopped
+
+  booking-client-app:
+    build:
+      context: booking-client-app
+      dockerfile: Containerfile
+      args:
+        NEXT_PUBLIC_API: http://localhost:3080
+        NEXT_PUBLIC_BOOKING_ADDRESS_AT: localhost
+    depends_on:
+      - booking-api-gateway
+    environment:
+      API_DOMAIN: http://localhost:3080
+      WEBSITE_DOMAIN: http://localhost:8080
+    network_mode: host
+    restart: unless-stopped
+
+volumes:
+  booking-service-pg-data:
+  supertokens-pg-data:
+
+networks:
+  app-network:
+    driver: bridge

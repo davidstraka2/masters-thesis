@@ -1,0 +1,45 @@
+.booking {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    padding: 5px;
+
+    border-radius: 5px;
+    cursor: pointer;
+
+    > *:not(:last-child) {
+        padding-right: 10px;
+    }
+
+    &:hover {
+        background-color: rgba(0 0 0 / 5%);
+    }
+}
+
+.bookingInfoBox {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+
+    overflow-x: hidden;
+
+    li {
+        list-style: none;
+    }
+}
+
+.bookingInfo {
+    display: flex;
+    flex-flow: row nowrap;
+
+    li {
+        white-space: nowrap;
+    }
+
+    li:not(:last-child)::after {
+        padding-left: 5px;
+        padding-right: 5px;
+        content: '·';
+    }
+}

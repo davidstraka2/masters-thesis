@@ -1,0 +1,20 @@
+services:
+  booking-service-pg:
+    image: postgres:17
+    environment:
+      - POSTGRES_USER=booking_service
+      - POSTGRES_PASSWORD=booking_service_password
+      - POSTGRES_DB=booking_service_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - booking-service-pg-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'booking_service', '-d', 'booking_service_db']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  booking-service-pg-data:

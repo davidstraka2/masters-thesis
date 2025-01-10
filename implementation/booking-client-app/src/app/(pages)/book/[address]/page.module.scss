@@ -1,0 +1,26 @@
+.page {
+    padding-top: 50px;
+    padding-right: 20px;
+    padding-left: 20px;
+}
+
+.items {
+    > li {
+        list-style: none;
+    }
+}
+
+.form {
+    margin-top: 20px;
+
+    fieldset {
+        border-top: 0;
+        border-right: 0;
+        border-left: 0;
+        border-radius: 0;
+    }
+
+    div:has(> div > div > fieldset) {
+        padding-bottom: 10px;
+    }
+}
